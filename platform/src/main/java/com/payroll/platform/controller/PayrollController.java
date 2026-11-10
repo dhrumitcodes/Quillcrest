@@ -37,6 +37,15 @@ public class PayrollController {
         return new ResponseEntity<>(new ApiResponse<>(true, "Monthly payroll run executed successfully", response), HttpStatus.CREATED);
     }
 
+    @PostMapping("/process-bulk")
+    public ResponseEntity<ApiResponse<List<BulkPayrollResultDTO>>> processBulk(@Valid @RequestBody BulkPayrollRequestDTO request) {
+        List<BulkPayrollResultDTO> results = payrollService.processBulkPayroll(request);
+        long processed = results.stream().filter(r -> "PROCESSED".equals(r.getStatus())).count();
+        String message = "Bulk payroll finished: " + processed + " processed, "
+                + (results.size() - processed) + " skipped/failed out of " + results.size() + " employees";
+        return new ResponseEntity<>(new ApiResponse<>(true, message, results), HttpStatus.CREATED);
+    }
+
     @GetMapping("/slips/employee/{employeeId}")
     public ResponseEntity<ApiResponse<List<PaySlipResponseDTO>>> getEmployeeSlips(@PathVariable Long employeeId) {
         List<PaySlipResponseDTO> response = payrollService.getEmployeePaySlips(employeeId);

@@ -170,6 +170,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         ensureCompanyAccess(companyId);
 
+        // Plain employees only get their own record, not the whole roster
+        User currentUser = getCurrentUser();
+        if ("ROLE_EMPLOYEE".equals(currentUser.getRole())) {
+            java.util.List<Employee> own = employeeRepository
+                    .findByCompanyIdAndEmailIgnoreCase(companyId, currentUser.getEmail())
+                    .map(java.util.List::of)
+                    .orElse(java.util.List.of());
+            return new org.springframework.data.domain.PageImpl<>(own, pageable, own.size())
+                    .map(this::mapToResponseDTO);
+        }
+
         Page<Employee> employees;
 
         if (searchLastName != null &&

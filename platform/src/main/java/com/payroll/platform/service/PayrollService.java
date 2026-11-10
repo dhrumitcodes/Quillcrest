@@ -8,4 +8,5 @@ public interface PayrollService {
     SalaryResponseDTO getSalaryStructureByEmployee(Long employeeId);
     PaySlipResponseDTO processMonthlyPayroll(ProcessPayrollRequestDTO requestDTO);
     List<PaySlipResponseDTO> getEmployeePaySlips(Long employeeId);
+    List<BulkPayrollResultDTO> processBulkPayroll(BulkPayrollRequestDTO requestDTO);
 }

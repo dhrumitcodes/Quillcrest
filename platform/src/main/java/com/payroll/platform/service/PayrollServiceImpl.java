@@ -181,6 +181,93 @@ public class PayrollServiceImpl implements PayrollService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @PreAuthorize(
+            "hasAnyRole('SUPER_ADMIN', 'COMPANY_ADMIN')"
+    )
+    public List<BulkPayrollResultDTO> processBulkPayroll(
+            BulkPayrollRequestDTO dto
+    ) {
+
+        User user = getCurrentUser();
+        Long companyId;
+
+        if ("ROLE_SUPER_ADMIN".equals(user.getRole())) {
+            if (dto.getCompanyId() == null) {
+                throw new IllegalArgumentException(
+                        "Company ID is required for a super admin bulk run."
+                );
+            }
+            companyId = dto.getCompanyId();
+        } else {
+            if (user.getCompanyId() == null) {
+                throw new AccessDeniedException(
+                        "User is not associated with a company"
+                );
+            }
+            // Company admins can only ever run payroll for their own company
+            companyId = user.getCompanyId();
+        }
+
+        List<Employee> employees =
+                employeeRepository
+                        .findByCompanyId(companyId, org.springframework.data.domain.Pageable.unpaged())
+                        .getContent();
+
+        List<BulkPayrollResultDTO> results = new java.util.ArrayList<>();
+
+        for (Employee employee : employees) {
+
+            String name = employee.getFirstName() + " " + employee.getLastName();
+
+            if (paySlipRepository.existsByEmployeeIdAndPayPeriod(
+                    employee.getId(), dto.getPayPeriod())) {
+
+                results.add(new BulkPayrollResultDTO(
+                        employee.getId(), name, "SKIPPED_ALREADY_PROCESSED",
+                        "Payroll already processed for " + dto.getPayPeriod(), null));
+                continue;
+            }
+
+            java.util.Optional<SalaryStructure> salaryOpt =
+                    salaryRepository.findByEmployeeId(employee.getId());
+
+            if (salaryOpt.isEmpty()) {
+                results.add(new BulkPayrollResultDTO(
+                        employee.getId(), name, "SKIPPED_NO_SALARY",
+                        "No salary structure configured", null));
+                continue;
+            }
+
+            SalaryStructure salary = salaryOpt.get();
+
+            BigDecimal allowances =
+                    salary.getAllowances() != null ? salary.getAllowances() : BigDecimal.ZERO;
+            BigDecimal deductions =
+                    salary.getDeductions() != null ? salary.getDeductions() : BigDecimal.ZERO;
+
+            BigDecimal grossPay = salary.getBaseSalary().add(allowances);
+            BigDecimal netPay = grossPay.subtract(deductions);
+
+            if (netPay.compareTo(BigDecimal.ZERO) < 0) {
+                results.add(new BulkPayrollResultDTO(
+                        employee.getId(), name, "FAILED",
+                        "Net pay would be negative", null));
+                continue;
+            }
+
+            PaySlip saved = paySlipRepository.save(
+                    new PaySlip(employee, dto.getPayPeriod(), grossPay, deductions, netPay)
+            );
+
+            results.add(new BulkPayrollResultDTO(
+                    employee.getId(), name, "PROCESSED",
+                    "Net pay " + netPay, mapToPaySlipResponse(saved)));
+        }
+
+        return results;
+    }
+
     private Employee getEmployeeWithAccessCheck(
             Long employeeId
     ) {
