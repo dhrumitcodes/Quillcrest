@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getCompanyId } from "../../utils/session";
 import { AlertCircle, X } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -20,7 +21,7 @@ export default function AddEmployee({ departments, deptError, onClose, onCreated
         panNumber: "",
         aadhaarNumber: "",
         hireDate: new Date().toISOString().split("T")[0],
-        companyId: 1,
+        companyId: getCompanyId(),
         departmentId: "",
     });
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getCompanyId } from "../../utils/session";
 import { CheckCircle2 } from "lucide-react";
 import EmployeeList from "./EmployeeList";
 import AddEmployee from "./AddEmployee";
@@ -26,7 +27,7 @@ export default function EmployeePage() {
     const fetchEmployees = () => {
         setLoading(true);
         setLoadError(null);
-        fetch(`${API_BASE}/api/employees/company/1`, { headers: { ...authHeaders() } })
+        fetch(`${API_BASE}/api/employees/company/${getCompanyId()}`, { headers: { ...authHeaders() } })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to load employee directory");
                 return res.json();
@@ -46,7 +47,7 @@ export default function EmployeePage() {
     };
 
     const fetchDepartments = () => {
-        fetch(`${API_BASE}/api/departments/company/1?size=100`, { headers: { ...authHeaders() } })
+        fetch(`${API_BASE}/api/departments/company/${getCompanyId()}?size=100`, { headers: { ...authHeaders() } })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to load departments");
                 return res.json();

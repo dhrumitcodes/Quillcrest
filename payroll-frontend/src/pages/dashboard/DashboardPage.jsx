@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { getCompanyId } from "../../utils/session";
 import { Link } from "react-router-dom";
 import {
     Users,
@@ -81,7 +82,7 @@ export default function DashboardPage() {
         setAiError(null);
         const token = localStorage.getItem("token");
 
-        fetch(`${API_BASE}/api/insights/company/1`, {
+        fetch(`${API_BASE}/api/insights/company/${getCompanyId()}`, {
             headers: {
                 Accept: "application/json",
                 ...(token && { Authorization: `Bearer ${token}` }),

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getCompanyId } from "../../utils/session";
 import { AlertCircle, X, Trash2 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -22,13 +23,13 @@ function DepartmentPage() {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        companyId: 1,
+        companyId: getCompanyId(),
     });
 
     const fetchDepartments = () => {
         setLoading(true);
         setLoadError(null);
-        fetch(`${API_BASE}/api/departments/company/1?size=100`, {
+        fetch(`${API_BASE}/api/departments/company/${getCompanyId()}?size=100`, {
             headers: { ...authHeaders() },
         })
             .then(async (res) => {
@@ -76,7 +77,7 @@ function DepartmentPage() {
             }
 
             setShowModal(false);
-            setFormData({ name: "", description: "", companyId: 1 });
+            setFormData({ name: "", description: "", companyId: getCompanyId() });
             fetchDepartments();
         } catch (err) {
             console.error("Create department error:", err);

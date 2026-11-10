@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getCompanyId } from "../../utils/session";
 import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import { runComplianceEvaluation } from "../../utils/complianceRules";
 
@@ -24,7 +25,7 @@ export default function CompliancePage() {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        fetch(`${API_BASE}/api/employees/company/1`, {
+        fetch(`${API_BASE}/api/employees/company/${getCompanyId()}`, {
             headers: {
                 Accept: "application/json",
                 ...(token && { Authorization: `Bearer ${token}` }),

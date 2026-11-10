@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getCompanyId } from "../../utils/session";
 import { Download, AlertCircle, CheckCircle2, FileText, Users } from "lucide-react";
 import { generatePayslipPDF } from "../../utils/generatePayslip";
 import { generateForm16PDF } from "../../utils/generateForm16";
@@ -56,7 +57,7 @@ function PayrollPage() {
     }, []);
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/employees/company/1`, { headers: { ...authHeaders() } })
+        fetch(`${API_BASE}/api/employees/company/${getCompanyId()}`, { headers: { ...authHeaders() } })
             .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load employees"))))
             .then((res) => {
                 const list = res.data?.content ? res.data.content : res.data || [];
@@ -170,7 +171,7 @@ function PayrollPage() {
         fetch(`${API_BASE}/api/payroll/process-bulk`, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ payPeriod: bulkPayPeriod }),
+            body: JSON.stringify({ payPeriod: bulkPayPeriod, companyId: getCompanyId() }),
         })
             .then(async (res) => {
                 const data = await res.json().catch(() => ({}));
