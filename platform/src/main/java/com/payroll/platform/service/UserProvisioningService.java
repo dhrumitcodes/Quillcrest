@@ -65,8 +65,7 @@ public class UserProvisioningService {
                         actor.getCompanyId() == null || !actor.getCompanyId().equals(companyId))) {
             throw new AccessDeniedException("You can view users only in your own company");
         }
-        return users.findAll().stream()
-                .filter(user -> companyId.equals(user.getCompanyId()))
+        return users.findByCompanyId(companyId).stream()
                 .map(user -> new UserSummaryDTO(user.getId(), user.getEmail(), user.getRole(), user.getCompanyId()))
                 .toList();
     }
