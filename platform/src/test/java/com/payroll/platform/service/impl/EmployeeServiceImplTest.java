@@ -149,4 +149,21 @@ class EmployeeServiceImplTest {
 
         assertThrows(IllegalArgumentException.class, () -> employeeService.createEmployee(validRequest()));
     }
+    @Test
+    void getEmployeesByCompany_deniesCompanyAdmin_forAnotherTenant() {
+        loginAs("tenant-admin@example.test", "ROLE_COMPANY_ADMIN", 1L);
+        assertThrows(AccessDeniedException.class, () -> employeeService.getEmployeesByCompany(2L, null, org.springframework.data.domain.PageRequest.of(0, 10)));
+    }
+
+    @Test
+    void getEmployeesByCompany_deniesAuditor_forAnotherTenant() {
+        loginAs("tenant-auditor@example.test", "ROLE_AUDITOR", 2L);
+        assertThrows(AccessDeniedException.class, () -> employeeService.getEmployeesByCompany(1L, null, org.springframework.data.domain.PageRequest.of(0, 10)));
+    }
+
+    @Test
+    void getEmployeesByCompany_deniesEmployee_forAnotherTenant() {
+        loginAs("tenant-employee@example.test", "ROLE_EMPLOYEE", 1L);
+        assertThrows(AccessDeniedException.class, () -> employeeService.getEmployeesByCompany(2L, null, org.springframework.data.domain.PageRequest.of(0, 10)));
+    }
 }

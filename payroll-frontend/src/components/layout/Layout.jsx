@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
     Menu,
@@ -17,6 +17,8 @@ import {
     ChevronRight,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const navigation = [
     {
@@ -58,8 +60,49 @@ const navigation = [
 
 export default function Layout() {
     const [isOpen, setIsOpen] = useState(false);
+    const isSuperAdmin = String(localStorage.getItem("userRole") || "").replace(/^ROLE_/, "").replace(/[^A-Z]/g, "") === "SUPERADMIN";
+    const [companies, setCompanies] = useState([]);
+    const [selectedCompanyId, setSelectedCompanyId] = useState(localStorage.getItem("selectedCompanyId") || "");
+    const [companyOptionsLoading, setCompanyOptionsLoading] = useState(isSuperAdmin);
 
     const { darkMode, toggleTheme } = useTheme();
+
+    useEffect(() => {
+        if (!isSuperAdmin) return;
+        const token = localStorage.getItem("token");
+        fetch(API_BASE + "/api/companies", {
+            headers: { Accept: "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
+        })
+            .then((response) => {
+                if (!response.ok) throw new Error("Could not load companies for the workspace selector");
+                return response.json();
+            })
+            .then((payload) => {
+                const list = Array.isArray(payload) ? payload : (payload.data || []);
+                setCompanies(list);
+                const stored = localStorage.getItem("selectedCompanyId");
+                const stillExists = list.some((company) => String(company.id) === String(stored));
+                const nextId = stillExists ? String(stored) : (list[0] ? String(list[0].id) : "");
+                setSelectedCompanyId(nextId);
+                if (nextId) localStorage.setItem("selectedCompanyId", nextId);
+                else localStorage.removeItem("selectedCompanyId");
+            })
+            .catch((error) => {
+                console.error("Company selector:", error);
+                setCompanies([]);
+                setSelectedCompanyId("");
+                localStorage.removeItem("selectedCompanyId");
+            })
+            .finally(() => setCompanyOptionsLoading(false));
+    }, [isSuperAdmin]);
+
+    const handleCompanyChange = (event) => {
+        const nextId = event.target.value;
+        setSelectedCompanyId(nextId);
+        if (nextId) localStorage.setItem("selectedCompanyId", nextId);
+        else localStorage.removeItem("selectedCompanyId");
+        window.location.reload();
+    };
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -325,6 +368,15 @@ export default function Layout() {
                     >
                         Workspace
                     </p>
+                    {isSuperAdmin && (
+                        <select aria-label="Select company workspace" value={selectedCompanyId} onChange={handleCompanyChange}
+                            disabled={companyOptionsLoading || companies.length === 0}
+                            className="mt-2 w-full rounded-control border border-border dark:border-border-dark bg-canvas dark:bg-canvas-dark px-2 py-2 text-xs text-ink dark:text-ink-dark">
+                            {companies.length === 0 ? <option value="">No companies available</option> : companies.map((company) => (
+                                <option key={company.id} value={company.id}>{company.name}</option>
+                            ))}
+                        </select>
+                    )}
                 </div>
                 <nav className="px-3 space-y-1">
                     {navigation.map((item) => {
@@ -530,6 +582,18 @@ export default function Layout() {
                     </div>
 
                     <div className="flex items-center gap-5">
+                        {isSuperAdmin && (
+                            <label className="flex items-center gap-2 text-xs text-muted dark:text-muted-dark">
+                                <span>Company</span>
+                                <select aria-label="Select company workspace" value={selectedCompanyId} onChange={handleCompanyChange}
+                                    disabled={companyOptionsLoading || companies.length === 0}
+                                    className="h-9 max-w-[220px] rounded-control border border-border dark:border-border-dark bg-canvas dark:bg-canvas-dark px-2 text-sm text-ink dark:text-ink-dark">
+                                    {companies.length === 0 ? <option value="">No companies available</option> : companies.map((company) => (
+                                        <option key={company.id} value={company.id}>{company.name}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        )}
                         <div className="relative w-[280px]">
                             <Search
                                 className="
@@ -631,7 +695,13 @@ export default function Layout() {
                         lg:p-8
                     "
                 >
-                    <Outlet />
+                    {isSuperAdmin && companyOptionsLoading ? (
+                        <div className="py-12 text-center text-sm text-muted dark:text-muted-dark">Loading company workspaces…</div>
+                    ) : isSuperAdmin && !selectedCompanyId ? (
+                        <div className="py-12 text-center text-sm text-muted dark:text-muted-dark">Create a company before opening a tenant workspace.</div>
+                    ) : (
+                        <Outlet />
+                    )}
                 </main>
             </div>
         </div>

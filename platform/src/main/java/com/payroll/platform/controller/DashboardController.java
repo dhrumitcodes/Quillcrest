@@ -20,8 +20,9 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<ApiResponse<DashboardSummaryDTO>> getSummary() {
-        DashboardSummaryDTO summary = dashboardService.getSummary();
+    public ResponseEntity<ApiResponse<DashboardSummaryDTO>> getSummary(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long companyId) {
+        DashboardSummaryDTO summary = dashboardService.getSummary(companyId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Dashboard summary computed", summary));
     }
 }

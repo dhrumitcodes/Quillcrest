@@ -1,52 +1,28 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Users } from "lucide-react";
 
-export default function CompanyList({ companies, canManageCompanies, onDelete }) {
+export default function CompanyList({ companies, canManageCompanies, canManageUsers, onDelete, onManageUsers }) {
+    const hasActions = canManageCompanies || canManageUsers;
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-                <thead>
-                <tr className="border-b border-border dark:border-border-dark text-muted dark:text-muted-dark text-xs font-semibold uppercase tracking-wide">
-                    <th className="py-3 px-2">Name</th>
-                    <th className="py-3 px-2">Registration no.</th>
-                    <th className="py-3 px-2">Email</th>
-                    <th className="py-3 px-2">Employees</th>
-                    {canManageCompanies && <th className="py-3 px-2 text-right">Actions</th>}
-                </tr>
-                </thead>
+                <thead><tr className="border-b border-border dark:border-border-dark text-muted dark:text-muted-dark text-xs font-semibold uppercase tracking-wide">
+                    <th className="py-3 px-2">Name</th><th className="py-3 px-2">Registration no.</th><th className="py-3 px-2">Email</th><th className="py-3 px-2">Employees</th>
+                    {hasActions && <th className="py-3 px-2 text-right">Actions</th>}
+                </tr></thead>
                 <tbody className="divide-y divide-border dark:divide-border-dark text-sm">
-                {companies.length === 0 ? (
-                    <tr>
-                        <td colSpan={canManageCompanies ? 5 : 4} className="py-8 text-center text-muted dark:text-muted-dark">
-                            No companies found. Click "+ Add company" to create one.
-                        </td>
-                    </tr>
-                ) : (
-                    companies.map((comp) => (
-                        <tr key={comp.id} className="hover:bg-canvas dark:hover:bg-canvas-dark transition-colors">
-                            <td className="py-4 px-2 font-medium text-ink dark:text-ink-dark">{comp.name}</td>
-                            <td className="py-4 px-2 font-mono text-xs text-accent">{comp.registrationNumber || "N/A"}</td>
-                            <td className="py-4 px-2 text-muted dark:text-muted-dark">{comp.email || "—"}</td>
-                            <td className="py-4 px-2">
-                                    <span className="px-2.5 py-1 rounded-control text-xs font-semibold bg-accent-soft dark:bg-accent-soft-dark text-accent">
-                                        {comp.totalEmployees ?? 0}
-                                    </span>
-                            </td>
-                            {canManageCompanies && (
-                                <td className="py-4 px-2 text-right">
-                                    <button
-                                        onClick={() => onDelete(comp.id, comp.name)}
-                                        className="text-muted dark:text-muted-dark hover:text-danger transition-colors"
-                                        title="Delete company"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            )}
-                        </tr>
-                    ))
-                )}
-                </tbody>
+                {companies.length === 0 ? <tr><td colSpan={hasActions ? 5 : 4} className="py-8 text-center text-muted">No companies found.</td></tr> :
+                    companies.map(comp => <tr key={comp.id} className="hover:bg-canvas dark:hover:bg-canvas-dark transition-colors">
+                        <td className="py-4 px-2 font-medium text-ink dark:text-ink-dark">{comp.name}</td>
+                        <td className="py-4 px-2 font-mono text-xs text-accent">{comp.registrationNumber || "N/A"}</td>
+                        <td className="py-4 px-2 text-muted dark:text-muted-dark">{comp.email || "—"}</td>
+                        <td className="py-4 px-2"><span className="px-2.5 py-1 rounded-control text-xs font-semibold bg-accent-soft dark:bg-accent-soft-dark text-accent">{comp.totalEmployees ?? 0}</span></td>
+                        {hasActions && <td className="py-4 px-2 text-right whitespace-nowrap">
+                            {canManageUsers && <button onClick={() => onManageUsers(comp)} className="mr-3 inline-flex items-center gap-1.5 text-accent hover:underline" title="Manage company users"><Users className="h-4 w-4" />Manage users</button>}
+                            {canManageCompanies && <button onClick={() => onDelete(comp.id, comp.name)} className="text-muted hover:text-danger" title="Delete company"><Trash2 className="h-4 w-4" /></button>}
+                        </td>}
+                    </tr>)
+                }</tbody>
             </table>
         </div>
     );

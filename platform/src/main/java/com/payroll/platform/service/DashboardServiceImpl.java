@@ -53,20 +53,28 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardSummaryDTO getSummary() {
+        return getSummary(null);
+    }
 
+    @Override
+    public DashboardSummaryDTO getSummary(Long selectedCompanyId) {
         User user = getCurrentUser();
         boolean superAdmin = "ROLE_SUPER_ADMIN".equals(user.getRole());
 
-        if (superAdmin) {
+        // With no selected tenant, retain the platform-wide Super Admin view.
+        if (superAdmin && selectedCompanyId == null) {
             long totalEmployees = employeeRepository.count();
             long totalCompanies = companyRepository.count();
-            // Platform-wide view for super admins. Payroll totals, compliance
-            // score, and trend are per-tenant concepts, so we deliberately
-            // don't try to sum them across every company here.
             return new DashboardSummaryDTO(totalEmployees, totalCompanies, BigDecimal.ZERO, "—", 0, new ArrayList<>());
         }
 
-        Long companyId = user.getCompanyId();
+        // Super Admins may inspect one selected tenant. Tenant users always
+        // remain scoped to their own company; a request parameter cannot
+        // override their authenticated company.
+        Long companyId = superAdmin ? selectedCompanyId : user.getCompanyId();
+        if (superAdmin && !companyRepository.existsById(companyId)) {
+            throw new IllegalArgumentException("Selected company was not found.");
+        }
 
         if (companyId == null) {
             throw new AccessDeniedException("Your account is not linked to a company.");
