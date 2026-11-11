@@ -60,7 +60,7 @@ const navigation = [
 
 export default function Layout() {
     const [isOpen, setIsOpen] = useState(false);
-    const isSuperAdmin = localStorage.getItem("userRole") === "ROLE_SUPER_ADMIN";
+    const isSuperAdmin = String(localStorage.getItem("userRole") || "").replace(/^ROLE_/, "").replace(/[^A-Z]/g, "") === "SUPERADMIN";
     const [companies, setCompanies] = useState([]);
     const [selectedCompanyId, setSelectedCompanyId] = useState(localStorage.getItem("selectedCompanyId") || "");
     const [companyOptionsLoading, setCompanyOptionsLoading] = useState(isSuperAdmin);
