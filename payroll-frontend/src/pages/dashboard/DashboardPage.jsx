@@ -50,7 +50,7 @@ export default function DashboardPage() {
         setSummaryLoading(true);
         setSummaryError(false);
         const token = localStorage.getItem("token");
-        fetch(`${API_BASE}/api/dashboard/summary`, {
+        fetch(`${API_BASE}/api/dashboard/summary?companyId=${getCompanyId() || ""}`, {
             headers: {
                 Accept: "application/json",
                 ...(token && { Authorization: `Bearer ${token}` }),
