@@ -8,6 +8,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 function CompanyPage() {
     const userRole = localStorage.getItem("userRole");
     const canManageCompanies = userRole === "ROLE_SUPER_ADMIN";
+    const canManageUsers = canManageCompanies || userRole === "ROLE_COMPANY_ADMIN";
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -112,6 +113,7 @@ function CompanyPage() {
                         companies={companies}
                         canManageCompanies={canManageCompanies}
                         onDelete={handleDelete}
+                        canManageUsers={canManageUsers}
                         onManageUsers={setSelectedCompany}
                     />
                 )}
