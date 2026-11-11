@@ -87,7 +87,12 @@ export default function Layout() {
                 if (nextId) localStorage.setItem("selectedCompanyId", nextId);
                 else localStorage.removeItem("selectedCompanyId");
             })
-            .catch((error) => console.error("Company selector:", error))
+            .catch((error) => {
+                console.error("Company selector:", error);
+                setCompanies([]);
+                setSelectedCompanyId("");
+                localStorage.removeItem("selectedCompanyId");
+            })
             .finally(() => setCompanyOptionsLoading(false));
     }, [isSuperAdmin]);
 
