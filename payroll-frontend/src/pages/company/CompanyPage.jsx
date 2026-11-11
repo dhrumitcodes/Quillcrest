@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CompanyList from "./CompanyList";
 import AddCompany from "./AddCompany";
+import ManageCompanyUsers from "./ManageCompanyUsers";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -12,6 +13,7 @@ function CompanyPage() {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState(null);
 
     const fetchCompanies = () => {
         setLoading(true);
@@ -110,9 +112,18 @@ function CompanyPage() {
                         companies={companies}
                         canManageCompanies={canManageCompanies}
                         onDelete={handleDelete}
+                        onManageUsers={setSelectedCompany}
                     />
                 )}
             </div>
+
+            {selectedCompany && (
+                <ManageCompanyUsers
+                    company={selectedCompany}
+                    isSuperAdmin={canManageCompanies}
+                    onClose={() => setSelectedCompany(null)}
+                />
+            )}
 
             {isModalOpen && (
                 <AddCompany
