@@ -91,7 +91,7 @@ function CompanyPage() {
 
             {!canManageCompanies && (
                 <div className="mb-4 p-3 bg-warning-soft text-warning text-sm rounded-control">
-                    Your role ({userRole || "unknown"}) has read-only access to company records.
+                    You can manage users and access records for your own company only.
                 </div>
             )}
 
